@@ -322,21 +322,45 @@ class MysqlAdapter extends PdoAdapter implements AdapterInterface
         $columns = array();
         $rows = $this->fetchAll(sprintf('SHOW COLUMNS FROM `%s`', $tableName));
         foreach ($rows as $columnInfo) {
-            $column = new Column();
-            $column->setName($columnInfo['Field'])
-                   ->setType($columnInfo['Type'])
-                   ->setNull($columnInfo['Null'] != 'NO')
-                   ->setDefault($columnInfo['Default']);
+            if (strpos($columnInfo['Type'], 'enum') === FALSE && strpos($columnInfo['Type'], 'set') === FALSE) {
+                $column = new Column();
+                $column->setName($columnInfo['Field'])
+                    ->setType($columnInfo['Type'])
+                    ->setNull($columnInfo['Null'] != 'NO')
+                    ->setDefault($columnInfo['Default']);
 
-            $phinxType = $this->getPhinxType($columnInfo['Type']);
-            $column->setType($phinxType['name'])
-                   ->setLimit($phinxType['limit']);
+                $phinxType = $this->getPhinxType($columnInfo['Type']);
+                $column->setType($phinxType['name'])
+                    ->setLimit($phinxType['limit']);
 
-            if ($columnInfo['Extra'] == 'auto_increment') {
-                $column->setIdentity(true);
+                if ($columnInfo['Extra'] == 'auto_increment') {
+                    $column->setIdentity(true);
+                }
+
+                $columns[] = $column;
             }
+        }
 
-            $columns[] = $column;
+        return $columns;
+    }
+
+    /**
+     *
+     */
+    public function getEnum($tableName)
+    {
+        $columns = array();
+        $rows = $this->fetchAll(sprintf('SHOW COLUMNS FROM `%s`', $tableName));
+        foreach ($rows as $columnInfo) {
+            if (strpos($columnInfo['Type'], 'enum') !== FALSE || strpos($columnInfo['Type'], 'set') !== FALSE) {
+                $column = new Column();
+                $column->setName($columnInfo['Field'])
+                    ->setType($columnInfo['Type'])
+                    ->setNull($columnInfo['Null'] != 'NO')
+                    ->setDefault($columnInfo['Default']);
+
+                $columns[] = $column;
+            }
         }
 
         return $columns;

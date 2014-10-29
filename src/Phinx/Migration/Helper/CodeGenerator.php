@@ -114,6 +114,28 @@ class CodeGenerator
     }
 
     /**
+     * Build options array for addEnum()
+     *
+     * @param Column $column
+     *
+     * @return string
+     */
+    public static function buildEnumOptionsString(Column $column)
+    {
+        $stringParts = array();
+        $value = $column->getNull();
+        if ($value !== false) {
+            $stringParts[] = 'NOT NULL';
+        }
+        $value = $column->getDefault();
+        if ($value !== NULL) {
+            $stringParts[] = "DEFAULT '{$value}'";
+        }
+
+        return count($stringParts) > 0 ? implode(" ", $stringParts) : "";
+    }
+
+    /**
      * Build arguments string for addColumn()
      *
      * @param Column $column
@@ -132,6 +154,27 @@ class CodeGenerator
         }
 
         return implode(', ', $args);
+    }
+
+    /**
+     * Build string for addEnum()
+     *
+     * @param Column $column
+     *
+     * @return string
+     */
+    public static function buildEnumString(Table $table, Column $column)
+    {
+        $args = array(
+            "`{$column->getName()}`",
+            "{$column->getType()}"
+        );
+        $options = self::buildEnumOptionsString($column);
+        if ($options) {
+            $args[] = $options;
+        }
+
+        return "ALTER TABLE {$table->getName()} ADD ".implode(' ', $args);
     }
 
     public static function buildFkString(Table\ForeignKey $fk)

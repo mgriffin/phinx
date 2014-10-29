@@ -29,6 +29,16 @@ class Schema extends AbstractMigration
 
 <?php endforeach; ?>
             ->update();
+<?php endif; ?>
+<?php endforeach; ?>
+<?php foreach ($tables as $table) : ?>
+<?php
+    $enums = $table->getAdapter()->getEnum($table->getName());
+    if (count($enums) > 0) : ?>
+<?php foreach ($enums as $enum) : ?>
+            $this->execute("<?php echo CodeGenerator::buildEnumString($table, $enum); ?>");
+
+<?php endforeach; ?>
 
 <?php endif; ?>
 <?php endforeach; ?>
